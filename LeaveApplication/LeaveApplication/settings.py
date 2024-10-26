@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'api',
      "rest_framework.authtoken",
     'rest_framework_simplejwt',
+    'leave',
 ]
 
 MIDDLEWARE = [
@@ -145,6 +146,9 @@ REST_FRAMEWORK = {
     
 }
 
+
+
+AUTH_USER_MODEL = 'api.Employee'
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=10), 
     "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
@@ -201,6 +205,8 @@ REST_AUTH = {
     "JWT_AUTH_HTTPONLY": False,
 }
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    # Add any other origins you need
+    "http://localhost:3000",  # Your React dev server
+    "http://127.0.0.1:3000",
 ]
+
+CORS_ALLOW_CREDENTIALS = True  # If using cookies/sessions
