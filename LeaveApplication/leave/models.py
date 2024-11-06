@@ -2,7 +2,13 @@ from django.db import models
 from api.models import Employee
 from django.utils import timezone
 
+class Holiday(models.Model):
+    name = models.CharField(max_length=100)
+    date = models.DateField(unique=True)
+    description = models.TextField(blank=True)
 
+    def __str__(self):
+        return f"{self.name} ({self.date})"
 class LeaveRequest(models.Model):
     LEAVE_TYPE_CHOICES = [
         ("annual", "Annual Leave"),
@@ -26,6 +32,7 @@ class LeaveRequest(models.Model):
     reason = models.TextField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     submission_date = models.DateTimeField(default=timezone.now)
+    working_days = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.employee.first_name} {self.employee.last_name} - {self.leave_type} ({self.status})"

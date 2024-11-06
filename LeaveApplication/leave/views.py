@@ -2,7 +2,7 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework import status
 from .models import LeaveRequest
-from .serializers import LeaveRequestSerializer
+from .serializers import LeaveRequestSerializer,LeaveTypeSerializer
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from django.http import JsonResponse
 from django.views import View
@@ -23,26 +23,31 @@ class ApplyLeaveRequestView(generics.CreateAPIView):
         # Check for overlapping leave requests
         start_date = data.get("start_date")
         end_date = data.get("end_date")
+        
+        if not start_date or not end_date:
+            return Response(
+                {"message": "Both start date and end date are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         overlapping_requests = LeaveRequest.objects.filter(
             employee=user,
             status__in=["pending", "approved"],
             start_date__lt=end_date,
-            end_date__gt=start_date,
+            end_date__gte=start_date,
         )
 
         if overlapping_requests.exists():
             return Response(
-                {
-                    "message": "A leave request already exists for the selected dates.",
-                },
+                {"message": "A leave request already exists for the selected dates."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Use the serializer to validate and create the leave request
         serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)  # This will handle missing fields
+        serializer.is_valid(raise_exception=True)
 
+        # Create the leave request
         self.perform_create(serializer)
 
         return Response(
@@ -52,6 +57,28 @@ class ApplyLeaveRequestView(generics.CreateAPIView):
             },
             status=status.HTTP_201_CREATED,
         )
+class LeaveTypesView(APIView):
+    def get(self, request):
+        # Get leave types with their details
+        leave_types = [
+            {
+                "value": choice[0],
+                "label": choice[1],
+                "max_days": self.get_max_days(choice[0])
+            }
+            for choice in LeaveRequest.LEAVE_TYPE_CHOICES
+        ]
+        return Response(leave_types)
+    
+    def get_max_days(self, leave_type):
+        # Define maximum days for each leave type
+        max_days_map = {
+            "annual": 20,
+            "sick": 6,
+            "casual": 10,
+            "maternity": 90
+        }
+        return max_days_map.get(leave_type, 0)
 
 
 # API view to list the leave history for the current user (employee)

@@ -11,5 +11,6 @@ urlpatterns = [
     path('employee/report/', EmployeeLeaveReportView.as_view(), name='employee-leave-report'),
     path('manager/report/', ManagerLeaveReportView.as_view(), name='manager-leave-report'),
     path('cancel-leave/', CancelLeaveView.as_view()),
+    path('leave-types/', LeaveTypesView.as_view(), name='leave-types'),
 
 ]
